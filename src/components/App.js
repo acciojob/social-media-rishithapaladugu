@@ -1,43 +1,53 @@
-import React, { useState } from "react";
-import { Routes, Route, Link } from "react-router-dom";
-import Landing from "./Landing";
-import Users from "./Users";
-import Notifications from "./Notifications";
-import PostDetails from "./PostDetails";
-import PostForm from "./PostForm";
+import React, { useState, useEffect } from 'react'
+import PostDetails from './PostDetails'
+import { Routes, Route, useNavigate } from "react-router-dom"
+import PostsPage from "./PostsPage"
+import UsersPage from "./UsersPage"
+import NotificationsPage from "./NotificationsPage"
+import { loadData, saveData, makeId } from './data'
 
-function App() {
-  const [posts, setPosts] = useState([
-    { id: 1, title: "First Post", author: "Alice", content: "Hello world!", reactions: [0, 0, 0, 0, 0] },
-    { id: 2, title: "Second Post", author: "Bob", content: "React is awesome!", reactions: [0, 0, 0, 0, 0] },
-  ]);
+export default function App(){
+const [state, setState] = useState(() => loadData())
+const navigate = useNavigate()
+useEffect(()=>{ saveData(state) }, [state])
 
-  const [notifications, setNotifications] = useState([]);
-
-  const addPost = (newPost) => {
-    setPosts([...posts, { ...newPost, id: Date.now(), reactions: [0, 0, 0, 0, 0] }]);
-  };
-
-  const updatePost = (id, updatedPost) => {
-    setPosts(posts.map(p => (p.id === id ? { ...p, ...updatedPost } : p)));
-  };
-
-  return (
-    <div className="App">
-      <h1>GenZ</h1>
-      <nav>
-        <Link to="/">Posts</Link> | <Link to="/users">Users</Link> | <Link to="/notifications">Notifications</Link> | <Link to="/create">Create Post</Link>
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<Landing posts={posts} updatePost={updatePost} />} />
-        <Route path="/users" element={<Users posts={posts} />} />
-        <Route path="/notifications" element={<Notifications notifications={notifications} setNotifications={setNotifications} />} />
-        <Route path="/create" element={<PostForm addPost={addPost} />} />
-        <Route path="/posts/:id" element={<PostDetails posts={posts} updatePost={updatePost} />} />
-      </Routes>
-    </div>
-  );
+function createPost({title, authorId, content}){
+  const newPost = { id: makeId('p'), title, authorId, content, reactions: [0,0,0,0,0] }
+  setState(s => ({ ...s, posts: [ ...s.posts.slice(0,1), newPost, ...s.posts.slice(1) ] }))
+  navigate('/')
 }
 
-export default App;
+function updatePost(updated){
+  setState(s => ({ ...s, posts: s.posts.map(p => p.id === updated.id ? { ...p, ...updated } : p) }))
+}
+function reactToPost(postId, reactionIndex) {
+    setState(s => ({
+      ...s,
+      posts: s.posts.map(p => 
+        p.id === postId 
+          ? { 
+              ...p, 
+              reactions: p.reactions.map((r, i) => i === reactionIndex ? (i === 4 ? 0 : r + 1) : r) 
+            } 
+          : p
+      )
+    }))
+  }
+
+return (
+<div className="App">
+  <h1>GenZ</h1>
+  <nav>
+  <a href="/" onClick={(e)=>{ e.preventDefault(); navigate('/') }}>Posts</a>
+  <a href="/users" onClick={(e)=>{ e.preventDefault(); navigate('/users') }}>Users</a>
+  <a href="/notifications" onClick={(e)=>{ e.preventDefault(); navigate('/notifications') }}>Notifications</a>
+  </nav>
+  <Routes>
+    <Route path="/" element={<PostsPage state={state} createPost={createPost} reactToPost={reactToPost} />} />
+    <Route path="/users" element={<UsersPage state={state} />} />
+    <Route path="/notifications" element={<NotificationsPage />} />
+    <Route path="/posts/:postId" element={<PostDetails state={state} updatePost={updatePost} reactToPost={reactToPost} />} />
+  </Routes>
+</div>
+)
+}
