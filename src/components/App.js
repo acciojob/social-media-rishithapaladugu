@@ -1,53 +1,50 @@
-import React, { useState, useEffect } from 'react'
-import PostDetails from './PostDetails'
-import { Routes, Route, useNavigate } from "react-router-dom"
-import PostsPage from "./PostsPage"
-import UsersPage from "./UsersPage"
-import NotificationsPage from "./NotificationsPage"
-import { loadData, saveData, makeId } from './data'
+import React from 'react';
+import { BrowserRouter as Router, Switch, Route, NavLink } from 'react-router-dom';
+import LandingPage from './components/LandingPage';
+import UsersPage from './components/UsersPage';
+import NotificationsPage from './components/NotificationsPage';
+import CreatePost from './components/CreatePost';
+import EditPost from './components/EditPost';
+import UserPosts from './components/UserPosts';
+import './App.css';
 
-export default function App(){
-const [state, setState] = useState(() => loadData())
-const navigate = useNavigate()
-useEffect(()=>{ saveData(state) }, [state])
+function App() {
+  return (
+    <Router>
+      <div className="App">
+        <nav className="navbar">
+          <div className="nav-container">
+            <h1 className="nav-logo">SocialMedia</h1>
+            <ul className="nav-menu">
+              <li className="nav-item">
+                <NavLink to="/" className="nav-link" activeClassName="active" exact>Home</NavLink>
+              </li>
+              <li className="nav-item">
+                <NavLink to="/users" className="nav-link" activeClassName="active">Users</NavLink>
+              </li>
+              <li className="nav-item">
+                <NavLink to="/notifications" className="nav-link" activeClassName="active">Notifications</NavLink>
+              </li>
+              <li className="nav-item">
+                <NavLink to="/create-post" className="nav-link" activeClassName="active">Create Post</NavLink>
+              </li>
+            </ul>
+          </div>
+        </nav>
 
-function createPost({title, authorId, content}){
-  const newPost = { id: makeId('p'), title, authorId, content, reactions: [0,0,0,0,0] }
-  setState(s => ({ ...s, posts: [ ...s.posts.slice(0,1), newPost, ...s.posts.slice(1) ] }))
-  navigate('/')
+        <main className="main-content">
+          <Switch>
+            <Route exact path="/" component={LandingPage} />
+            <Route exact path="/users" component={UsersPage} />
+            <Route path="/users/:userId" component={UserPosts} />
+            <Route path="/notifications" component={NotificationsPage} />
+            <Route path="/create-post" component={CreatePost} />
+            <Route path="/edit-post/:postId" component={EditPost} />
+          </Switch>
+        </main>
+      </div>
+    </Router>
+  );
 }
 
-function updatePost(updated){
-  setState(s => ({ ...s, posts: s.posts.map(p => p.id === updated.id ? { ...p, ...updated } : p) }))
-}
-function reactToPost(postId, reactionIndex) {
-    setState(s => ({
-      ...s,
-      posts: s.posts.map(p => 
-        p.id === postId 
-          ? { 
-              ...p, 
-              reactions: p.reactions.map((r, i) => i === reactionIndex ? (i === 4 ? 0 : r + 1) : r) 
-            } 
-          : p
-      )
-    }))
-  }
-
-return (
-<div className="App">
-  <h1>GenZ</h1>
-  <nav>
-  <a href="/" onClick={(e)=>{ e.preventDefault(); navigate('/') }}>Posts</a>
-  <a href="/users" onClick={(e)=>{ e.preventDefault(); navigate('/users') }}>Users</a>
-  <a href="/notifications" onClick={(e)=>{ e.preventDefault(); navigate('/notifications') }}>Notifications</a>
-  </nav>
-  <Routes>
-    <Route path="/" element={<PostsPage state={state} createPost={createPost} reactToPost={reactToPost} />} />
-    <Route path="/users" element={<UsersPage state={state} />} />
-    <Route path="/notifications" element={<NotificationsPage />} />
-    <Route path="/posts/:postId" element={<PostDetails state={state} updatePost={updatePost} reactToPost={reactToPost} />} />
-  </Routes>
-</div>
-)
-}
+export default App;
