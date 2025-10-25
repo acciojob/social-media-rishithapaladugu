@@ -1,32 +1,27 @@
 
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './LandingPage';
+import UsersPage from './UsersPage';
+import NotificationsPage from './NotificationsPage';
+import CreatePost from './CreatePost';
+import EditPost from './EditPost';
 
-import React, { useState } from 'react';
-import Tabs from './Tabs';
-import PostForm from './PostForm';
-import PostList from './PostList';
-import Users from './Users';
-import Notifications from './Notifications';
-export default function App() {
-  const [activeTab, setActiveTab] = useState('posts');
-
+const App = () => {
   return (
-    <div className="App"> {/* <-- Add this class */}
-      <h1>GenZ</h1>
-      <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
-      {activeTab === 'posts' && (
-        <>
-          <PostForm />
-          <h2>Posts</h2>
-          <PostList />
-        </>
-      )}
-       <div className="tabs">
-      <a href="#" onClick={() => setActiveTab('posts')}>Posts</a>
-      <a href="#" onClick={() => setActiveTab('users')}>Users</a>
-      <a href="#" onClick={() => setActiveTab('notifications')}>Notifications</a>
-    </div>
-      {activeTab === 'users' && <Users />}
-      {activeTab === 'notifications' && <Notifications />}
-    </div>
+    <Router>
+      <div>
+        {/* Do not remove the main div */}
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/users" element={<UsersPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/create" element={<CreatePost />} />
+          <Route path="/edit/:postId" element={<EditPost post={{ title: '', content: '' }} onSave={() => {}} />} />
+        </Routes>
+      </div>
+    </Router>
   );
-}
+};
+
+export default App;
